@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Multiplayer Tic Tac Toe</title>
+    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.1.0/firebase-database.js"></script>
+    <style>
+        body { display: flex; flex-direction: column; align-items: center; }
+        .board { display: grid; grid-template-columns: repeat(3, 100px); grid-template-rows: repeat(3, 100px); }
+        .cell { border: 1px solid #000; display: flex; justify-content: center; align-items: center; font-size: 24px; }
+    </style>
+</head>
+<body>
+    <h1>Multiplayer Tic Tac Toe</h1>
+    <div class="board" id="board"></div>
+    <script>
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let currentPlayer = 'X';
+        let board = Array(9).fill('');
+
+        function createBoard() {
+            const boardElement = document.getElementById('board');
+            board.forEach((cell, index) => {
+                const cellElement = document.createElement('div');
+                cellElement.classList.add('cell');
+                cellElement.dataset.index = index;
+                cellElement.textContent = cell;
+                cellElement.onclick = () => handleCellClick(index);
+                boardElement.appendChild(cellElement);
+            });
+        }
+
+        function handleCellClick(index) {
+            if (board[index] === '') {
+                board[index] = currentPlayer;
+                db.ref('game/').set(board);
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            }
+        }
+
+        db.ref('game/').on('value', (snapshot) => {
+            board = snapshot.val() || [];
+            updateBoard();
+        });
+
+        function updateBoard() {
+            const cells = document.querySelectorAll('.cell');
+            cells.forEach((cell, index) => {
+                cell.textContent = board[index];
+            });
+        }
+
+        createBoard();
+    </script>
+</body>
+</html>
